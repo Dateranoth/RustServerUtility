@@ -1,10 +1,10 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v2.15.1.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v2.15.1.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.1.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.1.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - August 8, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
 #AutoIt3Wrapper_Res_Fileversion=1.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
@@ -87,12 +87,11 @@ Global $g_sTimeCheck4 = _NowCalc()
 Global Const $g_c_sServerEXE = "RustDedicated.exe"
 Global Const $g_c_sPIDFile = @ScriptDir & "\RustServerUtility_lastpid_tmp"
 Global Const $g_c_sHwndFile = @ScriptDir & "\RustServerUtility_lasthwnd_tmp"
-Global Const $g_c_sMODIDFile = @ScriptDir & "\RustServerUtility_modid2modname.ini"
+Global Const $g_c_sSeedFile = @ScriptDir & "\RustServerUtility_SeedLog.ini"
 Global Const $g_c_sLogFile = @ScriptDir & "\RustServerUtility.log"
 Global Const $g_c_sIniFile = @ScriptDir & "\RustServerUtility.ini"
 Global $g_iIniFail = 0
 Global $g_iBeginDelayedShutdown = 0
-Global $g_iDelayShutdownTime = 0
 Global $g_sRCONp = ""
 
 If FileExists($g_c_sPIDFile) Then
@@ -134,41 +133,41 @@ Func ReadUini()
 	Global $g_sRCONIP = IniRead($g_c_sIniFile, "RCON Settings", "RCONIP", $iniCheck)
 	Global $g_sRCONPort = IniRead($g_c_sIniFile, "RCON Settings", "RCONPort", $iniCheck)
 	Global $g_sRCONPass = IniRead($g_c_sIniFile, "RCON Settings", "RCONPass", $iniCheck)
+	Global $g_sMonthlyWipes = IniRead($g_c_sIniFile, "Wipe by generating new random seed the first Thursday of each Month? yes/no", "MonthlyWipes", $iniCheck)
 	Global $g_sUseSteamCMD = IniRead($g_c_sIniFile, "Use SteamCMD To Update Server? yes/no", "UseSteamCMD", $iniCheck)
 	Global $g_sSteamCmdDir = IniRead($g_c_sIniFile, "Use SteamCMD To Update Server? yes/no", "SteamCmdDir", $iniCheck)
 	Global $g_sValidateGame = IniRead($g_c_sIniFile, "Use SteamCMD To Update Server? yes/no", "ValidateGameFiles", $iniCheck)
 	Global $g_sUseRemoteRestart = IniRead($g_c_sIniFile, "Use Remote Restart ?yes/no", "UseRemoteRestart", $iniCheck)
 	Global $g_sRestartPort = IniRead($g_c_sIniFile, "Use Remote Restart ?yes/no", "RestartPort", $iniCheck)
 	Global $g_sRestartUser_Password = IniRead($g_c_sIniFile, "Use Remote Restart ?yes/no", "RestartUser_Password", $iniCheck)
-	Global $sObfuscatePass = IniRead($g_c_sIniFile, "Hide Passwords in Log? yes/no", "ObfuscatePass", $iniCheck)
+	Global $g_sObfuscatePass = IniRead($g_c_sIniFile, "Hide Passwords in Log? yes/no", "ObfuscatePass", $iniCheck)
 	Global $g_sCheckForUpdate = IniRead($g_c_sIniFile, "Check for Update Every X Minutes? yes/no", "CheckForUpdate", $iniCheck)
-	Global $UpdateInterval = IniRead($g_c_sIniFile, "Update Check Interval in Minutes 05-59", "UpdateInterval", $iniCheck)
-	Global $g_sUpdateMods = IniRead($g_c_sIniFile, "Install Mods and Check for Update? yes/no", "CheckForModUpdate", $iniCheck)
-	Global $g_sMods = IniRead($g_c_sIniFile, "Install Mods and Check for Update? yes/no", "ModList", $iniCheck)
-	Global $RestartDaily = IniRead($g_c_sIniFile, "Restart Server Daily? yes/no", "RestartDaily", $iniCheck)
+	Global $g_sUpdateInterval = IniRead($g_c_sIniFile, "Update Check Interval in Minutes 05-59", "UpdateInterval", $iniCheck)
+	Global $g_sUseOxide = IniRead($g_c_sIniFile, "Install Oxide and Update with Server? yes/no", "UseOxide", $iniCheck)
+	Global $g_sRestartDaily = IniRead($g_c_sIniFile, "Restart Server at Set Time? yes/no", "RestartDaily", $iniCheck)
 	Global $g_sRestartHour1 = IniRead($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour1", $iniCheck)
 	Global $g_sRestartHour2 = IniRead($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour2", $iniCheck)
 	Global $g_sRestartHour3 = IniRead($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour3", $iniCheck)
 	Global $g_sRestartHour4 = IniRead($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour4", $iniCheck)
 	Global $g_sRestartHour5 = IniRead($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour5", $iniCheck)
 	Global $g_sRestartHour6 = IniRead($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour6", $iniCheck)
-	Global $HotMin = IniRead($g_c_sIniFile, "Daily Restart Minute? 00-59", "HotMin", $iniCheck)
-	Global $ExMem = IniRead($g_c_sIniFile, "Excessive Memory Amount? in GB", "ExMem", $iniCheck)
-	Global $ExMemRestart = IniRead($g_c_sIniFile, "Restart On Excessive Memory Use? yes/no", "ExMemRestart", $iniCheck)
-	Global $logRotate = IniRead($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "logRotate", $iniCheck)
-	Global $logQuantity = IniRead($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "logQuantity", $iniCheck)
-	Global $logHoursBetweenRotate = IniRead($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "logHoursBetweenRotate", $iniCheck)
-	Global $sUseDiscordBot = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "UseDiscordBot", $iniCheck)
-	Global $sDiscordWebHookURLs = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordWebHookURL", $iniCheck)
-	Global $sDiscordBotName = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotName", $iniCheck)
-	Global $bDiscordBotUseTTS = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotUseTTS", $iniCheck)
-	Global $sDiscordBotAvatar = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotAvatarLink", $iniCheck)
-	Global $iDiscordBotNotifyTime = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotTimeBeforeRestart", $iniCheck)
-	Global $sUseTwitchBot = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "UseTwitchBot", $iniCheck)
-	Global $sTwitchNick = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchNick", $iniCheck)
-	Global $sChatOAuth = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "ChatOAuth", $iniCheck)
-	Global $sTwitchChannels = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchChannels", $iniCheck)
-	Global $iTwitchBotNotifyTime = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchBotTimeBeforeRestart", $iniCheck)
+	Global $g_sRestartMinute = IniRead($g_c_sIniFile, "Daily Restart Minute? 00-59", "RestartMinute", $iniCheck)
+	Global $g_sExMem = IniRead($g_c_sIniFile, "Excessive Memory Amount? in GB", "ExMem", $iniCheck)
+	Global $g_sExMemRestart = IniRead($g_c_sIniFile, "Restart On Excessive Memory Use? yes/no", "ExMemRestart", $iniCheck)
+	Global $g_sRotateLogs = IniRead($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "RotateLogs", $iniCheck)
+	Global $g_sLogQuantity = IniRead($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "LogQuantity", $iniCheck)
+	Global $g_sLogHoursBetweenRotate = IniRead($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "LogHoursBetweenRotate", $iniCheck)
+	Global $g_sUseDiscordBot = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "UseDiscordBot", $iniCheck)
+	Global $g_sDiscordWebHookURLs = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordWebHookURL", $iniCheck)
+	Global $g_sDiscordBotName = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotName", $iniCheck)
+	Global $g_sDiscordBotUseTTS = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotUseTTS", $iniCheck)
+	Global $g_sDiscordBotAvatar = IniRead($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotAvatarLink", $iniCheck)
+	Global $g_sUseTwitchBot = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "UseTwitchBot", $iniCheck)
+	Global $g_sTwitchNick = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchNick", $iniCheck)
+	Global $g_sChatOAuth = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "ChatOAuth", $iniCheck)
+	Global $g_sTwitchChannels = IniRead($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchChannels", $iniCheck)
+	Global $g_sNotifyInGame = IniRead($g_c_sIniFile, "Send Message to in Game Players Before Restart? yes/no", "NotifyInGame", $iniCheck)
+	Global $g_iDelayShutdownTime = IniRead($g_c_sIniFile, "Set the Delay Time Before Restarting when using any Notification Method (minutes)", "TimeBeforeRestart", $iniCheck)
 
 	If $iniCheck = $g_sServerDir Then
 		$g_sServerDir = "C:\Game_Servers\Rust_Server"
@@ -199,7 +198,7 @@ Func ReadUini()
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sSeed Then
-		$g_sSeed = Random(1,2147483647,1)
+		$g_sSeed = Random(1, 2147483647, 1)
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sSaveInterval Then
@@ -230,6 +229,10 @@ Func ReadUini()
 		$g_sRCONPass &= "_RANDOM"
 		$g_iIniFail += 1
 	EndIf
+	If $iniCheck = $g_sMonthlyWipes Then
+		$g_sMonthlyWipes = "no"
+		$g_iIniFail += 1
+	EndIf
 	If $iniCheck = $g_sUseSteamCMD Then
 		$g_sUseSteamCMD = "yes"
 		$g_iIniFail += 1
@@ -254,8 +257,8 @@ Func ReadUini()
 		$g_sRestartUser_Password = "Admin1_" & $g_sRestartUser_Password
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $sObfuscatePass Then
-		$sObfuscatePass = "yes"
+	If $iniCheck = $g_sObfuscatePass Then
+		$g_sObfuscatePass = "yes"
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sCheckForUpdate Then
@@ -265,25 +268,18 @@ Func ReadUini()
 		$g_sCheckForUpdate = "no"
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " SteamCMD disabled. Disabling CheckForUpdate. Update will not work without SteamCMD to update it!")
 	EndIf
-	If $iniCheck = $UpdateInterval Then
-		$UpdateInterval = "15"
+	If $iniCheck = $g_sUpdateInterval Then
+		$g_sUpdateInterval = "15"
 		$g_iIniFail += 1
-	ElseIf $UpdateInterval < 5 Then
-		$UpdateInterval = 5
+	ElseIf $g_sUpdateInterval < 5 Then
+		$g_sUpdateInterval = 5
 	EndIf
-	If $iniCheck = $g_sUpdateMods Then
-		$g_sUpdateMods = "no"
-		$g_iIniFail += 1
-	ElseIf $g_sUpdateMods = "yes" And $g_sCheckForUpdate <> "yes" Then
-		$g_sUpdateMods = "no"
-		FileWriteLine($g_c_sLogFile, _NowCalc() & " Server Update Check is Disabled. Disabling Mod Updates. Does not make sense to update Mods and Not Server!")
-	EndIf
-	If $iniCheck = $g_sMods Then
-		$g_sMods = "#########,#########"
+	If $iniCheck = $g_sUseOxide Then
+		$g_sUseOxide = "no"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $RestartDaily Then
-		$RestartDaily = "no"
+	If $iniCheck = $g_sRestartDaily Then
+		$g_sRestartDaily = "no"
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sRestartHour1 Then
@@ -310,99 +306,95 @@ Func ReadUini()
 		$g_sRestartHour6 = "00"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $HotMin Then
-		$HotMin = "01"
+	If $iniCheck = $g_sRestartMinute Then
+		$g_sRestartMinute = "01"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $ExMem Then
-		$ExMem = "6"
+	If $iniCheck = $g_sExMem Then
+		$g_sExMem = "6"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $ExMemRestart Then
-		$ExMemRestart = "no"
+	If $iniCheck = $g_sExMemRestart Then
+		$g_sExMemRestart = "no"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $logRotate Then
-		$logRotate = "yes"
+	If $iniCheck = $g_sRotateLogs Then
+		$g_sRotateLogs = "yes"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $logQuantity Then
-		$logQuantity = "10"
+	If $iniCheck = $g_sLogQuantity Then
+		$g_sLogQuantity = "10"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $logHoursBetweenRotate Then
-		$logHoursBetweenRotate = "24"
+	If $iniCheck = $g_sLogHoursBetweenRotate Then
+		$g_sLogHoursBetweenRotate = "24"
 		$g_iIniFail += 1
-	ElseIf $logHoursBetweenRotate < 1 Then
-		$logHoursBetweenRotate = 1
+	ElseIf $g_sLogHoursBetweenRotate < 1 Then
+		$g_sLogHoursBetweenRotate = 1
 	EndIf
-	If $iniCheck = $sUseDiscordBot Then
-		$sUseDiscordBot = "no"
-		$g_iIniFail += 1
-	EndIf
-	If $iniCheck = $sDiscordWebHookURLs Then
-		$sDiscordWebHookURLs = "https://discordapp.com/api/webhooks/XXXXXX/XXXX <- NO TRAILING SLASH AND USE FULL URL FROM WEBHOOK URL ON DISCORD"
+	If $iniCheck = $g_sUseDiscordBot Then
+		$g_sUseDiscordBot = "no"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $sDiscordBotName Then
-		$sDiscordBotName = "Rust Discord Bot"
+	If $iniCheck = $g_sDiscordWebHookURLs Then
+		$g_sDiscordWebHookURLs = "https://discordapp.com/api/webhooks/XXXXXX/XXXX <- NO TRAILING SLASH AND USE FULL URL FROM WEBHOOK URL ON DISCORD"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $bDiscordBotUseTTS Then
-		$bDiscordBotUseTTS = "yes"
+	If $iniCheck = $g_sDiscordBotName Then
+		$g_sDiscordBotName = "Rust Discord Bot"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $sDiscordBotAvatar Then
-		$sDiscordBotAvatar = ""
+	If $iniCheck = $g_sDiscordBotUseTTS Then
+		$g_sDiscordBotUseTTS = "yes"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $iDiscordBotNotifyTime Then
-		$iDiscordBotNotifyTime = "5"
-		$g_iIniFail += 1
-	ElseIf $iDiscordBotNotifyTime < 1 Then
-		$iDiscordBotNotifyTime = 1
-	EndIf
-	If $iniCheck = $sUseTwitchBot Then
-		$sUseTwitchBot = "no"
+	If $iniCheck = $g_sDiscordBotAvatar Then
+		$g_sDiscordBotAvatar = ""
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $sTwitchNick Then
-		$sTwitchNick = "twitchbotusername"
+	If $iniCheck = $g_sUseTwitchBot Then
+		$g_sUseTwitchBot = "no"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $sChatOAuth Then
-		$sChatOAuth = "oauth:1234 (Generate OAuth Token Here: https://twitchapps.com/tmi)"
+	If $iniCheck = $g_sTwitchNick Then
+		$g_sTwitchNick = "twitchbotusername"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $sTwitchChannels Then
-		$sTwitchChannels = "channel1,channel2,channel3"
+	If $iniCheck = $g_sChatOAuth Then
+		$g_sChatOAuth = "oauth:1234 (Generate OAuth Token Here: https://twitchapps.com/tmi)"
 		$g_iIniFail += 1
 	EndIf
-	If $iniCheck = $iTwitchBotNotifyTime Then
-		$iTwitchBotNotifyTime = "5"
+	If $iniCheck = $g_sTwitchChannels Then
+		$g_sTwitchChannels = "channel1,channel2,channel3"
 		$g_iIniFail += 1
-	ElseIf $iTwitchBotNotifyTime < 1 Then
-		$iTwitchBotNotifyTime = 1
+	EndIf
+	If $iniCheck = $g_sNotifyInGame Then
+		$g_sNotifyInGame = "no"
+		$g_iIniFail += 1
+	EndIf
+	If $iniCheck = $g_iDelayShutdownTime Then
+		$g_iDelayShutdownTime = "5"
+		$g_iIniFail += 1
+	ElseIf $g_iDelayShutdownTime < 1 Then
+		$g_iDelayShutdownTime = 1
 	EndIf
 	If $g_iIniFail > 0 Then
 		iniFileCheck()
 	EndIf
 
-	If $bDiscordBotUseTTS = "yes" Then
-		$bDiscordBotUseTTS = True
+	If $g_sDiscordBotUseTTS = "yes" Then
+		$g_sDiscordBotUseTTS = True
 	Else
-		$bDiscordBotUseTTS = False
+		$g_sDiscordBotUseTTS = False
 	EndIf
-
-	If ($sUseDiscordBot = "yes") Then
-		$g_iDelayShutdownTime = $iDiscordBotNotifyTime
-		If ($sUseTwitchBot = "yes") And ($iTwitchBotNotifyTime > $g_iDelayShutdownTime) Then
-			$g_iDelayShutdownTime = $iTwitchBotNotifyTime
+	If $g_sMonthlyWipes = "yes" Then
+		Global $g_sLastWipeDate = IniRead($g_c_sSeedFile, "Last Wipe Date", "DateofWipe", $iniCheck)
+		If $iniCheck = $g_sLastWipeDate Then
+			$g_sLastWipeDate = _NowCalc()
+			IniWrite($g_c_sSeedFile, "Last Wipe Date", "DateofWipe", $g_sLastWipeDate)
+			IniWrite($g_c_sSeedFile, "Seed Log", $g_sLastWipeDate & " ServerSeed", $g_sSeed)
 		EndIf
-	Else
-		$g_iDelayShutdownTime = $iTwitchBotNotifyTime
 	EndIf
-
 EndFunc   ;==>ReadUini
 
 Func iniFileCheck()
@@ -438,41 +430,41 @@ Func UpdateIni()
 	IniWrite($g_c_sIniFile, "RCON Settings", "RCONIP", $g_sRCONIP)
 	IniWrite($g_c_sIniFile, "RCON Settings", "RCONPort", $g_sRCONPort)
 	IniWrite($g_c_sIniFile, "RCON Settings", "RCONPass", $g_sRCONPass)
+	IniWrite($g_c_sIniFile, "Wipe by generating new random seed the first Thursday of each Month? yes/no", "MonthlyWipes", $g_sMonthlyWipes)
 	IniWrite($g_c_sIniFile, "Use SteamCMD To Update Server? yes/no", "UseSteamCMD", $g_sUseSteamCMD)
 	IniWrite($g_c_sIniFile, "Use SteamCMD To Update Server? yes/no", "SteamCmdDir", $g_sSteamCmdDir)
 	IniWrite($g_c_sIniFile, "Use SteamCMD To Update Server? yes/no", "ValidateGameFiles", $g_sValidateGame)
 	IniWrite($g_c_sIniFile, "Use Remote Restart ?yes/no", "UseRemoteRestart", $g_sUseRemoteRestart)
 	IniWrite($g_c_sIniFile, "Use Remote Restart ?yes/no", "RestartPort", $g_sRestartPort)
 	IniWrite($g_c_sIniFile, "Use Remote Restart ?yes/no", "RestartUser_Password", $g_sRestartUser_Password)
-	IniWrite($g_c_sIniFile, "Hide Passwords in Log? yes/no", "ObfuscatePass", $sObfuscatePass)
+	IniWrite($g_c_sIniFile, "Hide Passwords in Log? yes/no", "ObfuscatePass", $g_sObfuscatePass)
 	IniWrite($g_c_sIniFile, "Check for Update Every X Minutes? yes/no", "CheckForUpdate", $g_sCheckForUpdate)
-	IniWrite($g_c_sIniFile, "Update Check Interval in Minutes 05-59", "UpdateInterval", $UpdateInterval)
-	IniWrite($g_c_sIniFile, "Install Mods and Check for Update? yes/no", "CheckForModUpdate", $g_sUpdateMods)
-	IniWrite($g_c_sIniFile, "Install Mods and Check for Update? yes/no", "ModList", $g_sMods)
-	IniWrite($g_c_sIniFile, "Restart Server Daily? yes/no", "RestartDaily", $RestartDaily)
+	IniWrite($g_c_sIniFile, "Update Check Interval in Minutes 05-59", "UpdateInterval", $g_sUpdateInterval)
+	IniWrite($g_c_sIniFile, "Install Oxide and Update with Server? yes/no", "UseOxide", $g_sUseOxide)
+	IniWrite($g_c_sIniFile, "Restart Server at Set Time? yes/no", "RestartDaily", $g_sRestartDaily)
 	IniWrite($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour1", $g_sRestartHour1)
 	IniWrite($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour2", $g_sRestartHour2)
 	IniWrite($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour3", $g_sRestartHour3)
 	IniWrite($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour4", $g_sRestartHour4)
 	IniWrite($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour5", $g_sRestartHour5)
 	IniWrite($g_c_sIniFile, "Daily Restart Hours? 00-23", "RestartHour6", $g_sRestartHour6)
-	IniWrite($g_c_sIniFile, "Daily Restart Minute? 00-59", "HotMin", $HotMin)
-	IniWrite($g_c_sIniFile, "Excessive Memory Amount? in GB", "ExMem", $ExMem)
-	IniWrite($g_c_sIniFile, "Restart On Excessive Memory Use? yes/no", "ExMemRestart", $ExMemRestart)
-	IniWrite($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "logRotate", $logRotate)
-	IniWrite($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "logQuantity", $logQuantity)
-	IniWrite($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "logHoursBetweenRotate", $logHoursBetweenRotate)
-	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "UseDiscordBot", $sUseDiscordBot)
-	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordWebHookURL", $sDiscordWebHookURLs)
-	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotName", $sDiscordBotName)
-	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotUseTTS", $bDiscordBotUseTTS)
-	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotAvatarLink", $sDiscordBotAvatar)
-	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotTimeBeforeRestart", $iDiscordBotNotifyTime)
-	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "UseTwitchBot", $sUseTwitchBot)
-	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchNick", $sTwitchNick)
-	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "ChatOAuth", $sChatOAuth)
-	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchChannels", $sTwitchChannels)
-	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchBotTimeBeforeRestart", $iTwitchBotNotifyTime)
+	IniWrite($g_c_sIniFile, "Daily Restart Minute? 00-59", "RestartMinute", $g_sRestartMinute)
+	IniWrite($g_c_sIniFile, "Excessive Memory Amount? in GB", "ExMem", $g_sExMem)
+	IniWrite($g_c_sIniFile, "Restart On Excessive Memory Use? yes/no", "ExMemRestart", $g_sExMemRestart)
+	IniWrite($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "RotateLogs", $g_sRotateLogs)
+	IniWrite($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "LogQuantity", $g_sLogQuantity)
+	IniWrite($g_c_sIniFile, "Rotate X Number of Logs every X Hours? yes/no", "LogHoursBetweenRotate", $g_sLogHoursBetweenRotate)
+	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "UseDiscordBot", $g_sUseDiscordBot)
+	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordWebHookURL", $g_sDiscordWebHookURLs)
+	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotName", $g_sDiscordBotName)
+	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotUseTTS", $g_sDiscordBotUseTTS)
+	IniWrite($g_c_sIniFile, "Use Discord Bot to Send Message Before Restart? yes/no", "DiscordBotAvatarLink", $g_sDiscordBotAvatar)
+	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "UseTwitchBot", $g_sUseTwitchBot)
+	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchNick", $g_sTwitchNick)
+	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "ChatOAuth", $g_sChatOAuth)
+	IniWrite($g_c_sIniFile, "Use Twitch Bot to Send Message Before Restart? yes/no", "TwitchChannels", $g_sTwitchChannels)
+	IniWrite($g_c_sIniFile, "Send Message to in Game Players Before Restart? yes/no", "NotifyInGame", $g_sNotifyInGame)
+	IniWrite($g_c_sIniFile, "Set the Delay Time Before Restarting when using any Notification Method (minutes)", "TimeBeforeRestart", $g_iDelayShutdownTime)
 EndFunc   ;==>UpdateIni
 #EndRegion ;**** INI Settings - User Variables ****
 
@@ -481,7 +473,7 @@ Func Gamercide()
 		$Shutdown = MsgBox(4100, "Shut Down?", "Do you wish to shutdown Server " & $g_sServerHostName & "? (PID: " & $g_sRustPID & ")", 60)
 		If $Shutdown = 6 Then
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Server Shutdown - Intiated by User when closing RustServerUtility Script")
-			CloseServer()
+			CloseServer(True)
 		EndIf
 		MsgBox(4096, "Thanks for using our Application", "Please visit us at https://gamercide.com", 2)
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Stopped by User")
@@ -494,19 +486,31 @@ Func Gamercide()
 	Exit
 EndFunc   ;==>Gamercide
 
-Func CloseServer()
+Func CloseServer($bImmediate = False, $iDelay = 60)
 	If WinExists($g_hRusthWnd) Then
-		ControlSend($g_hRusthWnd, "", "", "say Server will Perform Scheduled Restart in 1 minutes{enter}")
-		ControlSend($g_hRusthWnd, "", "", "restart 60{enter}")
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Server Window Found - Sending restart command for Clean Shutdown")
-		Sleep(55000)
-		ControlSend($g_hRusthWnd, "", "", 'kickall "" "Server Restarting" {enter}')
-		ControlSend($g_hRusthWnd, "", "", "server.save {enter}")
+		If Not $bImmediate Then
+			ControlSend($g_hRusthWnd, "", "", "restart " & $iDelay & "{enter}")
+			If $iDelay >= 10 Then
+				Local $iSleepTime = ($iDelay * 1000) - 5000
+				Sleep($iSleepTime)
+			EndIf
+			ControlSend($g_hRusthWnd, "", "", 'kickall "" "Server Restarting" {enter}')
+			ControlSend($g_hRusthWnd, "", "", "server.save {enter}")
+		Else
+			ControlSend($g_hRusthWnd, "", "", 'kickall "" "Server Restarting Now" {enter}')
+			ControlSend($g_hRusthWnd, "", "", "server.save {enter}")
+			ControlSend($g_hRusthWnd, "", "", "quit{enter}")
+		EndIf
 		WinWaitClose($g_hRusthWnd, "", 60)
+		Sleep(2000)
 	EndIf
 	If ProcessExists($g_sRustPID) Then
-		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Server Did not Shut Down Properly. Killing Process")
-		ProcessClose($g_sRustPID)
+		Sleep(8000)
+		If ProcessExists($g_sRustPID) Then
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Server Did not Shut Down Properly. Killing Process")
+			ProcessClose($g_sRustPID)
+		EndIf
 	EndIf
 	If FileExists($g_c_sPIDFile) Then
 		FileDelete($g_c_sPIDFile)
@@ -516,9 +520,9 @@ Func CloseServer()
 	EndIf
 EndFunc   ;==>CloseServer
 
-Func LogWrite($sString)
-	FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] " & $sString)
-EndFunc   ;==>LogWrite
+Func SendInGameMsg($sString)
+	ControlSend($g_hRusthWnd, "", "", $sString & "{enter}")
+EndFunc   ;==>SendInGameMsg
 
 Func RotateFile($sFile, $sBackupQty, $bDelOrig = True) ;Pass File to Rotate and Quantity of Files to Keep for backup. Optionally Keep Original.
 	Local $hCreateTime = @YEAR & @MON & @MDAY
@@ -557,7 +561,19 @@ Func ChangeSetting($sINI, $sSection, $sKey, $sValue)
 	Return $bReturn
 EndFunc   ;==>ChangeSetting
 
-#EndRegion ;**** Change Server Settings by Time and Day ****
+Func WipeCheck()
+	If @MDAY <= 07 And @WDAY = 5 Then
+		Local $iDaySinceWipe = _DateDiff('D', $g_sLastWipeDate, _NowCalc())
+		If $iDaySinceWipe >= 27 Then
+			$g_sSeed = Random(1, 2147483647, 1)
+			$g_sLastWipeDate = _NowCalc()
+			IniWrite($g_c_sSeedFile, "Last Wipe Date", "DateofWipe", $g_sLastWipeDate)
+			IniWrite($g_c_sSeedFile, "Seed Log", $g_sLastWipeDate & " ServerSeed", $g_sSeed)
+			ChangeSetting($g_c_sIniFile, "Server Settings", "WorldSeed", $g_sSeed)
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & "] New Seed Generated. Seed: " & $g_sSeed)
+		EndIf
+	EndIf
+EndFunc   ;==>WipeCheck
 
 #Region ;**** Function to Send Message to Discord ****
 Func _Discord_ErrFunc($oError)
@@ -629,7 +645,7 @@ Func SendTwitchMsg($sT_Nick, $sT_OAuth, $sT_Channels, $sT_Message)
 EndFunc   ;==>SendTwitchMsg
 
 Func TwitchMsgLog($sT_Msg)
-	Local $aTwitchIRC = SendTwitchMsg($sTwitchNick, $sChatOAuth, $sTwitchChannels, $sT_Msg)
+	Local $aTwitchIRC = SendTwitchMsg($g_sTwitchNick, $g_sChatOAuth, $g_sTwitchChannels, $sT_Msg)
 	If $aTwitchIRC[0] Then
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] [Twitch Bot] Successfully Connected to Twitch IRC")
 		If $aTwitchIRC[1] Then
@@ -749,169 +765,34 @@ Func UpdateCheck()
 EndFunc   ;==>UpdateCheck
 #EndRegion ;**** Functions to Check for Update ****
 
-#Region ;**** Functions to Check for Mod Updates ****
-Func GetLatestModUpdateTime($sMod)
-	Local $aReturn[3] = [False, False, ""]
-	InetGet("http://steamcommunity.com/sharedfiles/filedetails/changelog/" & $sMod, @ScriptDir & "\mod_info.tmp", 1)
-	Local Const $sFilePath = @ScriptDir & "\mod_info.tmp"
-	Local $hFileOpen = FileOpen($sFilePath, 0)
-	If $hFileOpen = -1 Then
-		$aReturn[0] = False
-	Else
-		$aReturn[0] = True ;File Exists
-		Local $sFileRead = FileRead($hFileOpen)
-		Local $aAppInfo = StringSplit($sFileRead, 'Update:', 1)
-		If UBound($aAppInfo) >= 3 Then
-			$aAppInfo = StringSplit($aAppInfo[2], '">', 1)
-		EndIf
-		If UBound($aAppInfo) >= 2 Then
-			$aAppInfo = StringSplit($aAppInfo[1], 'id="', 1)
-		EndIf
-		If UBound($aAppInfo) >= 2 And StringRegExp($aAppInfo[2], '^\d+$') Then
-			$aReturn[1] = True ;Successfully Read numerical value at positition expected
-			$aReturn[2] = $aAppInfo[2] ;Return Value Read
-		EndIf
-		FileClose($hFileOpen)
-		If FileExists($sFilePath) Then
-			FileDelete($sFilePath)
-		EndIf
+#Region ;**** Function to Download Oxide ****
+Func DownloadOxide()
+	Local Const $g_c_sTempDir = $g_sServerDir & "\tmp\"
+	If FileExists($g_c_sTempDir) Then
+		DirRemove($g_c_sTempDir, 1)
 	EndIf
-	Return $aReturn
-EndFunc   ;==>GetLatestModUpdateTime
-
-Func GetInstalledModUpdateTime($sServerDir, $sMod)
-	Local $aReturn[3] = [False, False, ""]
-	Local Const $sFilePath = $sServerDir & "\steamapps\workshop\appworkshop_440900.acf"
-	Local $hFileOpen = FileOpen($sFilePath, 0)
-	If $hFileOpen = -1 Then
-		$aReturn[0] = False
-	Else
-		$aReturn[0] = True ;File Exists
-		Local $sFileRead = FileRead($hFileOpen)
-		Local $aAppInfo = StringSplit($sFileRead, '"WorkshopItemDetails"', 1)
-		If UBound($aAppInfo) >= 3 Then
-			$aAppInfo = StringSplit($aAppInfo[2], '"' & $sMod & '"', 1)
-		EndIf
-		If UBound($aAppInfo) >= 3 Then
-			$aAppInfo = StringSplit($aAppInfo[2], '"timetouched', 1)
-		EndIf
-		If UBound($aAppInfo) >= 2 Then
-			$aAppInfo = StringSplit($aAppInfo[1], '"', 1)
-		EndIf
-		If UBound($aAppInfo) >= 9 And StringRegExp($aAppInfo[8], '^\d+$') Then
-			$aReturn[1] = True ;Successfully Read numerical value at positition expected
-			$aReturn[2] = $aAppInfo[8] ;Return Value Read
-		EndIf
-
-		If FileExists($sFilePath) Then
-			FileClose($hFileOpen)
-		EndIf
-	EndIf
-	Return $aReturn
-EndFunc   ;==>GetInstalledModUpdateTime
-
-Func CheckMod($sMods, $sSteamCmdDir, $sServerDir)
-	Local $aMods = StringSplit($sMods, ",")
-	For $i = 1 To $aMods[0]
-		$aMods[$i] = StringStripWS($aMods[$i], 8)
-		Local $aLatestTime = GetLatestModUpdateTime($aMods[$i])
-		Local $aInstalledTime = GetInstalledModUpdateTime($sServerDir, $aMods[$i])
-		Local $bStopUpdate = False
-		If Not $aLatestTime[0] Or Not $aLatestTime[1] Then
-			LogWrite("Something went wrong downloading update information for mod [" & $aMods[$i] & "] Check your Mod List for incorrect Mod numbers.")
-		ElseIf Not $aInstalledTime[0] Then
-			$bStopUpdate = UpdateMod($aMods[$i], $sSteamCmdDir, $sServerDir, 0) ;No Manifest. Download First Mod
-			If $bStopUpdate Then ExitLoop
-		ElseIf Not $aInstalledTime[1] Then
-			$bStopUpdate = UpdateMod($aMods[$i], $sSteamCmdDir, $sServerDir, 1) ;Mod does not exists. Download
-			If $bStopUpdate Then ExitLoop
-		ElseIf $aInstalledTime[1] And (StringCompare($aLatestTime[2], $aInstalledTime[2]) <> 0) Then
-			$bStopUpdate = UpdateMod($aMods[$i], $sSteamCmdDir, $sServerDir, 2) ;Mod Out of Date. Update.
-			If $bStopUpdate Then ExitLoop
-		EndIf
-	Next
-	WriteModList($sServerDir)
-EndFunc   ;==>CheckMod
-
-Func WriteModList($sServerDir)
-	Local $sModFile = $sServerDir & "\ConanSandbox\Mods\modlist.txt"
-	FileMove($sModFile, $sModFile & ".BAK", 9)
-	Local $aMods = StringSplit($g_sMods, ",")
-	Local $sModName = ""
-	For $i = 1 To $aMods[0]
-		$aMods[$i] = StringStripWS($aMods[$i], 8)
-		$sModName = IniRead($g_c_sMODIDFile, "MODID2MODNAME", $aMods[$i], $aMods[$i])
-		If $aMods[$i] = $sModName Then
-			LogWrite("Could not find Mod name for " & $aMods[$i] & " in " & $g_c_sMODIDFile & " Please refer to README and manually update list.")
+	DirCreate($g_sServerDir & "\tmp")
+	InetGet("https://dl.bintray.com/oxidemod/builds/Oxide-Rust.zip", $g_c_sTempDir & "Oxide-Rust.zip", 0)
+	Local Const $sFilePath = $g_c_sTempDir & "Oxide-Rust.zip"
+	If FileExists($sFilePath) Then
+		Local $hExtractFile = _ExtractZip($g_c_sTempDir & "Oxide-Rust.zip", "", "RustDedicated_Data", $g_c_sTempDir)
+		If $hExtractFile Then
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " Latest Oxide Verion Downloaded.")
+			If FileExists($g_c_sTempDir & "RustDedicated_Data") Then
+				DirCopy($g_c_sTempDir & "RustDedicated_Data", $g_sServerDir & "\RustDedicated_Data", 1)
+				FileWriteLine($g_c_sLogFile, _NowCalc() & " Oxide Updated")
+			Else
+				FileWriteLine($g_c_sLogFile, _NowCalc() & " Something went wrong Moving Oxide Folder.")
+			EndIf
 		Else
-			FileWriteLine($sModFile, $sModName)
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " Something went wrong Extracting Oxide Zip. Error Code: " & @error)
 		EndIf
-	Next
-EndFunc   ;==>WriteModList
-
-Func UpdateModNameList($sSteamCmdDir, $sMod)
-	Local $hSearch = FileFindFirstFile($sSteamCmdDir & "\steamapps\workshop\content\440900\" & $sMod & "\*.pak")
-	If $hSearch = -1 Then
-		LogWrite("Error: No Mod Files Found.")
-		Return False
+		DirRemove($g_c_sTempDir, 1)
 	Else
-		Local $sFileName = FileFindNextFile($hSearch)
-		IniWrite($g_c_sMODIDFile, "MODID2MODNAME", $sMod, $sFileName)
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " Something Went Wrong Downloading Oxide.")
 	EndIf
-	FileClose($hSearch)
-EndFunc   ;==>UpdateModNameList
-
-Func UpdateMod($sMod, $sSteamCmdDir, $sServerDir, $iReason)
-	Local $bReturn = False
-	If ProcessExists("steamcmd.exe") And FileExists($sSteamCmdDir & "\inuse.tmp") Then
-		LogWrite("A different Script is currently using SteamCMD in this directory. Skipping Mod " & $sMod & " Update for Now")
-		$bReturn = True ;Tell Previous Function to Exit Loop.
-	ElseIf ProcessExists($g_sRustPID) Then
-		LogWrite("Mod Update Found but Server is Currently Running.")
-		If (($sUseDiscordBot = "yes") Or ($sUseTwitchBot = "yes")) Then
-			$g_iBeginDelayedShutdown = 1
-		Else
-			CloseServer()
-		EndIf
-		$bReturn = True ;Tell Previous Function to Exit Loop.
-	Else
-		FileWriteLine($sSteamCmdDir & "\inuse.tmp", "Conan Server Utility Using SteamCMD to Update Mod. If Steam Command is not running. Delete this file.")
-		Local Const $sModManifest = "\steamapps\workshop\appworkshop_440900.acf"
-		If FileExists($sSteamCmdDir & $sModManifest) Then
-			FileMove($sSteamCmdDir & $sModManifest, $sSteamCmdDir & $sModManifest & ".BAK")
-		EndIf
-		If FileExists($sServerDir & $sModManifest) Then
-			FileMove($sServerDir & $sModManifest, $sSteamCmdDir & $sModManifest, 1 + 8)
-		EndIf
-		RunWait("" & $sSteamCmdDir & "\steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +workshop_download_item 440900 " & $sMod & " +exit")
-		If FileExists($sSteamCmdDir & "\steamapps\workshop\content\440900\" & $sMod) Then
-			UpdateModNameList($sSteamCmdDir, $sMod)
-			FileMove($sSteamCmdDir & "\steamapps\workshop\content\440900\" & $sMod & "\*.pak", $sServerDir & "\ConanSandbox\Mods\", 1 + 8)
-			DirRemove($sSteamCmdDir & "\steamapps\workshop\content\440900\" & $sMod, 1)
-		EndIf
-		If FileExists($sSteamCmdDir & $sModManifest) Then
-			FileMove($sSteamCmdDir & $sModManifest, $sServerDir & "\steamapps\workshop\appworkshop_440900.acf", 1 + 8)
-		EndIf
-		Switch $iReason
-			Case 0
-				LogWrite("No mod manifest existed. Downloaded First Mod " & $sMod & " to create Manifest. Should only see this once.")
-			Case 1
-				LogWrite("Mod " & $sMod & " did not exist. Downloaded.")
-			Case 2
-				LogWrite("Mod " & $sMod & " was out of date. Updated")
-		EndSwitch
-		$bReturn = False ;Tell Previous To Continue.
-		Local $hTimeOutTimer = TimerInit()
-		While FileExists($sSteamCmdDir & "\inuse.tmp")
-			FileDelete($sSteamCmdDir & "\inuse.tmp")
-			If @error Then ExitLoop
-			If TimerDiff($hTimeOutTimer) > 10000 Then ExitLoop
-		WEnd
-	EndIf
-
-	Return $bReturn
-EndFunc   ;==>UpdateMod
-#EndRegion ;**** Functions to Check for Mod Updates ****
+EndFunc   ;==>DownloadOxide
+#EndRegion ;**** Function to Download Oxide ****
 
 #Region ;**** Functions for Multiple Passwords and Hiding Password ****
 Func PassCheck($sPass, $sPassString)
@@ -963,7 +844,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script V1.0.0 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script V1.0.0-rc.1 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
@@ -986,23 +867,6 @@ If $g_sUseSteamCMD = "yes" Then
 				$g_sServerDir & "\steamapps\appmanifest_258550.acf before running SteamCMD" & @CRLF & @CRLF & "Would you like to Exit Now?", 20)
 		If $manifestFound = 6 Then
 			Exit
-		EndIf
-	EndIf
-	If $g_sUpdateMods = "yes" Then
-		Local Const $sModManifest = "\steamapps\workshop\appworkshop_440900.acf"
-		If FileExists($g_sServerDir & $sModManifest) And Not FileExists($g_c_sMODIDFile) Then
-			Local $ModListNotFound = MsgBox(4100, "Warning", "Existing Mods found, but there is no Mod ID to Mod Name file. If you continue all of your mods will be downloaded again " & _
-					"so modlist.txt can be ordered properly. Exit and refer to README if you don't wish to download mods again." & @CRLF & @CRLF & "Continue? (Press No to Exit)")
-			If $ModListNotFound = 6 Then
-				FileMove($g_sServerDir & $sModManifest, $g_sServerDir & $sModManifest & ".BAK", 9)
-				FileWrite($g_c_sMODIDFile, "[File for Matching Mod to Name]")
-				IniWrite($g_c_sMODIDFile, "MODID2MODNAME", "EXAMPLE_MODID", "EXAMPLE_MODNAME.pak")
-			Else
-				FileWrite($g_c_sMODIDFile, "[File for Matching Mod to Name]")
-				IniWrite($g_c_sMODIDFile, "MODID2MODNAME", "EXAMPLE_MODID", "EXAMPLE_MODNAME.pak")
-				Exit
-			EndIf
-
 		EndIf
 	EndIf
 Else
@@ -1037,7 +901,7 @@ While True ;**** Loop Until Closed ****
 			While $Count < 30
 				Local $sRECV = TCPRecv($ConnectedSocket, 512)
 				Local $aPassCompare = PassCheck($sRECV, $g_sRestartUser_Password)
-				If $sObfuscatePass = "yes" Then
+				If $g_sObfuscatePass = "yes" Then
 					$aPassCompare[2] = ObfPass($aPassCompare[2])
 				EndIf
 				If $aPassCompare[0] Then
@@ -1045,7 +909,17 @@ While True ;**** Loop Until Closed ****
 						Local $IP = _TCP_Server_ClientIP($ConnectedSocket)
 						Local $MEM = ProcessGetStats($g_sRustPID, 0)
 						FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] [Work Memory:" & $MEM[0] & " | Peak Memory:" & $MEM[1] & "] Restart Requested by Remote Host: " & $IP & " | User: " & $aPassCompare[1] & " | Pass: " & $aPassCompare[2])
-						CloseServer()
+						Local $sRemoteRestartMessage = $g_sServerHostName & ": Remote Restart Requested by " & $aPassCompare[1] & ". Restarting Server in 20 Seconds"
+						If $g_sUseDiscordBot = "yes" Then
+							SendDiscordMsg($g_sDiscordWebHookURLs, $sRemoteRestartMessage, $g_sDiscordBotName, $g_sDiscordBotUseTTS, $g_sDiscordBotAvatar)
+						EndIf
+						If $g_sUseTwitchBot = "yes" Then
+							TwitchMsgLog($sRemoteRestartMessage)
+						EndIf
+						If $g_sNotifyInGame = "yes" Then
+							SendInGameMsg($sRemoteRestartMessage)
+						EndIf
+						CloseServer(False, 20)
 						Sleep(10000)
 						ExitLoop
 					EndIf
@@ -1073,22 +947,25 @@ While True ;**** Loop Until Closed ****
 				FileWriteLine($g_c_sLogFile, _NowCalc() & " Running SteamCMD without validate. [steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +force_install_dir " & $g_sServerDir & " +app_update 258550 +quit]")
 				RunWait("" & $g_sSteamCmdDir & "\steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +force_install_dir " & $g_sServerDir & " +app_update 258550 +quit")
 			EndIf
-		EndIf
-		If $g_sUpdateMods = "yes" Then
-			CheckMod($g_sMods, $g_sSteamCmdDir, $g_sServerDir)
+			If $g_sUseOxide = "yes" Then
+				DownloadOxide()
+			EndIf
+			If $g_sMonthlyWipes = "yes" Then
+				WipeCheck()
+			EndIf
 		EndIf
 		$g_sRustPID = Run("" & $g_sServerDir & "\" & $g_c_sServerEXE & " -batchmode +server.identity " & $g_sServerIdentity & " +server.ip " & $g_sServerIP & " +server.port " & $g_sServerPort & " +server.hostname """ & $g_sServerHostName & _
-		""" +server.seed " & $g_sSeed & " +server.maxplayers " & $g_sMaxPlayers & " +server.worldsize " & $g_sWorldSize & " +server.saveinterval " & $g_sSaveInterval & " +server.tickrate " & $g_sTickRate & " +server.headerimage """ & $g_sServerHeaderImage & """ +server.url """ & $g_sServerURL & _
-		""" +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONPass & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" &@YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log""", $g_sServerDir)
+				""" +server.seed " & $g_sSeed & " +server.maxplayers " & $g_sMaxPlayers & " +server.worldsize " & $g_sWorldSize & " +server.saveinterval " & $g_sSaveInterval & " +server.tickrate " & $g_sTickRate & " +server.headerimage """ & $g_sServerHeaderImage & """ +server.url """ & $g_sServerURL & _
+				""" +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONPass & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" & @YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log""", $g_sServerDir)
 
-		If $sObfuscatePass = "yes" Then
+		If $g_sObfuscatePass = "yes" Then
 			$g_sRCONp = ObfPass($g_sRCONPass)
 		Else
 			$g_sRCONp = $g_sRCONPass
 		EndIf
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Started [" & $g_c_sServerEXE & " -batchmode +server.identity " & $g_sServerIdentity & " +server.ip " & $g_sServerIP & " +server.port " & $g_sServerPort & " +server.hostname """ & $g_sServerHostName & _
-		""" +server.seed " & $g_sSeed  & " +server.maxplayers " & $g_sMaxPlayers & " +server.worldsize " & $g_sWorldSize & " +server.saveinterval " & $g_sSaveInterval & " +server.tickrate " & $g_sTickRate & " +server.headerimage """ & $g_sServerHeaderImage & """ +server.url """ & $g_sServerURL & _
-		""" +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONp & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" &@YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log]""")
+				""" +server.seed " & $g_sSeed & " +server.maxplayers " & $g_sMaxPlayers & " +server.worldsize " & $g_sWorldSize & " +server.saveinterval " & $g_sSaveInterval & " +server.tickrate " & $g_sTickRate & " +server.headerimage """ & $g_sServerHeaderImage & """ +server.url """ & $g_sServerURL & _
+				""" +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONp & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" & @YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log]""")
 
 		If @error Or Not $g_sRustPID Then
 			If Not IsDeclared("iMsgBoxAnswer") Then Local $iMsgBoxAnswer
@@ -1117,27 +994,35 @@ While True ;**** Loop Until Closed ****
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Window Handle Found: " & $g_hRusthWnd)
 	ElseIf ((_DateDiff('n', $g_sTimeCheck1, _NowCalc())) >= 5) Then
 		Local $MEM = ProcessGetStats($g_sRustPID, 0)
-		Local $MaxMem = $ExMem*1000000000
-		If $MEM[0] > $MaxMem And $ExMemRestart = "no" Then
+		Local $MaxMem = $g_sExMem * 1000000000
+		If $MEM[0] > $MaxMem And $g_sExMemRestart = "no" Then
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Work Memory:" & $MEM[0] & " Peak Memory:" & $MEM[1])
-		ElseIf $MEM[0] > $MaxMem And $ExMemRestart = "yes" Then
+		ElseIf $MEM[0] > $MaxMem And $g_sExMemRestart = "yes" Then
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Work Memory:" & $MEM[0] & " Peak Memory:" & $MEM[1] & " Excessive Memory Use - Restart Requested by RustServerUtility Script")
-			CloseServer()
+			If ($g_sUseDiscordBot = "yes") Or ($g_sUseTwitchBot = "yes") Or ($g_sNotifyInGame = "yes") Then
+				$g_iBeginDelayedShutdown = 1
+			Else
+				CloseServer(True)
+			EndIf
 		EndIf
 		$g_sTimeCheck1 = _NowCalc()
 	EndIf
 	#EndRegion ;**** Keep Server Alive Check. ****
 
 	#Region ;**** Restart Server Every X Hours ****
-	If ((@HOUR = $g_sRestartHour1 Or @HOUR = $g_sRestartHour2 Or @HOUR = $g_sRestartHour3 Or @HOUR = $g_sRestartHour4 Or @HOUR = $g_sRestartHour5 Or @HOUR = $g_sRestartHour6) And @MIN = $HotMin And $RestartDaily = "yes" And ((_DateDiff('n', $g_sTimeCheck2, _NowCalc())) >= 1)) And ($g_iBeginDelayedShutdown = 0) Then
-		If ProcessExists($g_sRustPID) Then
-			Local $MEM = ProcessGetStats($g_sRustPID, 0)
-			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Work Memory:" & $MEM[0] & " Peak Memory:" & $MEM[1] & " - Daily Restart Requested by RustServerUtility Script")
-			If ($sUseDiscordBot = "yes") Or ($sUseTwitchBot = "yes") Then
-				$g_iBeginDelayedShutdown = 1
-				$g_sTimeCheck0 = _NowCalc
-			Else
-				CloseServer()
+	If ($g_sRestartDaily = "yes" And $g_iBeginDelayedShutdown = 0 And (@HOUR = $g_sRestartHour1 Or @HOUR = $g_sRestartHour2 Or @HOUR = $g_sRestartHour3 Or @HOUR = $g_sRestartHour4 Or @HOUR = $g_sRestartHour5 Or @HOUR = $g_sRestartHour6) And @MIN = $g_sRestartMinute And ((_DateDiff('n', $g_sTimeCheck2, _NowCalc())) >= 1)) Then
+		If $g_sMonthlyWipes = "yes" And @MDAY <= 07 And @WDAY = 5 Then
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Daily Restarts Skipped on The First Thursday of the month to prevent double wipe")
+		Else
+			If ProcessExists($g_sRustPID) Then
+				Local $MEM = ProcessGetStats($g_sRustPID, 0)
+				FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Work Memory:" & $MEM[0] & " Peak Memory:" & $MEM[1] & " - Daily Restart Requested by RustServerUtility Script")
+				If ($g_sUseDiscordBot = "yes") Or ($g_sUseTwitchBot = "yes") Or ($g_sNotifyInGame = "yes") Then
+					$g_iBeginDelayedShutdown = 1
+					$g_sTimeCheck0 = _NowCalc
+				Else
+					CloseServer(True)
+				EndIf
 			EndIf
 		EndIf
 		$g_sTimeCheck2 = _NowCalc()
@@ -1145,44 +1030,47 @@ While True ;**** Loop Until Closed ****
 	#EndRegion ;**** Restart Server Every X Hours ****
 
 	#Region ;**** Check for Update every X Minutes ****
-	If ($g_sCheckForUpdate = "yes") And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= $UpdateInterval) And ($g_iBeginDelayedShutdown = 0) Then
+	If ($g_sCheckForUpdate = "yes") And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= $g_sUpdateInterval) And ($g_iBeginDelayedShutdown = 0) Then
 		Local $bRestart = UpdateCheck()
-		If $bRestart And (($sUseDiscordBot = "yes") Or ($sUseTwitchBot = "yes")) Then
+		If $bRestart And (($g_sUseDiscordBot = "yes") Or ($g_sUseTwitchBot = "yes") Or ($g_sNotifyInGame = "yes")) Then
 			$g_iBeginDelayedShutdown = 1
 		ElseIf $bRestart Then
-			CloseServer()
-		ElseIf $g_sUpdateMods = "yes" Then
-			LogWrite("Checking for Mod Updates")
-			CheckMod($g_sMods, $g_sSteamCmdDir, $g_sServerDir)
+			CloseServer(True)
 		EndIf
 		$g_sTimeCheck0 = _NowCalc()
 	EndIf
 	#EndRegion ;**** Check for Update every X Minutes ****
 
 	#Region ;**** Announce to Twitch or Discord or Both ****
-	If ($sUseDiscordBot = "yes") Or ($sUseTwitchBot = "yes") Then
+	If ($g_sUseDiscordBot = "yes") Or ($g_sUseTwitchBot = "yes") Or ($g_sNotifyInGame = "yes") Then
 		If $g_iBeginDelayedShutdown = 1 Then
-			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Bot in Use. Delaying Shutdown for " & $g_iDelayShutdownTime & " minutes. Notifying Channel")
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Notification in Use. Delaying Shutdown for " & $g_iDelayShutdownTime & " minutes. Notifying Channel")
 			Local $sShutdownMessage = $g_sServerHostName & " Restarting in " & $g_iDelayShutdownTime & " minutes"
-			If $sUseDiscordBot = "yes" Then
-				SendDiscordMsg($sDiscordWebHookURLs, $sShutdownMessage, $sDiscordBotName, $bDiscordBotUseTTS, $sDiscordBotAvatar)
+			If $g_sUseDiscordBot = "yes" Then
+				SendDiscordMsg($g_sDiscordWebHookURLs, $sShutdownMessage, $g_sDiscordBotName, $g_sDiscordBotUseTTS, $g_sDiscordBotAvatar)
 			EndIf
-			If $sUseTwitchBot = "yes" Then
+			If $g_sUseTwitchBot = "yes" Then
 				TwitchMsgLog($sShutdownMessage)
+			EndIf
+			If $g_sNotifyInGame = "yes" Then
+				SendInGameMsg($sShutdownMessage)
 			EndIf
 			$g_iBeginDelayedShutdown = 2
 			$g_sTimeCheck0 = _NowCalc()
-		ElseIf ($g_iBeginDelayedShutdown >= 2 And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= $g_iDelayShutdownTime)) Then
+		ElseIf ($g_iBeginDelayedShutdown >= 2 And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= $g_iDelayShutdownTime - 1)) Then
 			$g_iBeginDelayedShutdown = 0
 			$g_sTimeCheck0 = _NowCalc()
 			CloseServer()
-		ElseIf $g_iBeginDelayedShutdown = 2 And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= ($g_iDelayShutdownTime - 1)) Then
-			Local $sShutdownMessage = $g_sServerHostName & " Restarting in 1 minute. Final Warning"
-			If $sUseDiscordBot = "yes" Then
-				SendDiscordMsg($sDiscordWebHookURLs, $sShutdownMessage, $sDiscordBotName, $bDiscordBotUseTTS, $sDiscordBotAvatar)
+		ElseIf $g_iBeginDelayedShutdown = 2 And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= ($g_iDelayShutdownTime - 2)) Then
+			Local $sShutdownMessage = $g_sServerHostName & " Restarting in 2 minutes. Final Warning"
+			If $g_sUseDiscordBot = "yes" Then
+				SendDiscordMsg($g_sDiscordWebHookURLs, $sShutdownMessage, $g_sDiscordBotName, $g_sDiscordBotUseTTS, $g_sDiscordBotAvatar)
 			EndIf
-			If $sUseTwitchBot = "yes" Then
+			If $g_sUseTwitchBot = "yes" Then
 				TwitchMsgLog($sShutdownMessage)
+			EndIf
+			If $g_sNotifyInGame = "yes" Then
+				SendInGameMsg($sShutdownMessage)
 			EndIf
 			$g_iBeginDelayedShutdown = 3
 		EndIf
@@ -1192,15 +1080,15 @@ While True ;**** Loop Until Closed ****
 	#EndRegion ;**** Announce to Twitch or Discord or Both ****
 
 	#Region ;**** Rotate Logs ****
-	If ($logRotate = "yes") And ((_DateDiff('h', $g_sTimeCheck4, _NowCalc())) >= 1) Then
+	If ($g_sRotateLogs = "yes") And ((_DateDiff('h', $g_sTimeCheck4, _NowCalc())) >= 1) Then
 		If Not FileExists($g_c_sLogFile) Then
 			FileWriteLine($g_c_sLogFile, $g_sTimeCheck4 & " Log File Created")
 			FileSetTime($g_c_sLogFile, @YEAR & @MON & @MDAY, 1)
 		EndIf
 		Local $g_c_sLogFileTime = FileGetTime($g_c_sLogFile, 1)
 		Local $logTimeSinceCreation = _DateDiff('h', $g_c_sLogFileTime[0] & "/" & $g_c_sLogFileTime[1] & "/" & $g_c_sLogFileTime[2] & " " & $g_c_sLogFileTime[3] & ":" & $g_c_sLogFileTime[4] & ":" & $g_c_sLogFileTime[5], _NowCalc())
-		If $logTimeSinceCreation >= $logHoursBetweenRotate Then
-			RotateFile($g_c_sLogFile, $logQuantity)
+		If $logTimeSinceCreation >= $g_sLogHoursBetweenRotate Then
+			RotateFile($g_c_sLogFile, $g_sLogQuantity)
 		EndIf
 		$g_sTimeCheck4 = _NowCalc()
 	EndIf
