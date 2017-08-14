@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.1.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.1.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.3.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.3.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.0.0
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -130,6 +130,7 @@ Func ReadUini()
 	Global $g_sTickRate = IniRead($g_c_sIniFile, "Server Settings", "TickRate", $iniCheck)
 	Global $g_sServerHeaderImage = IniRead($g_c_sIniFile, "Server Settings", "ServerHeaderImage", $iniCheck)
 	Global $g_sServerURL = IniRead($g_c_sIniFile, "Server Settings", "ServerURL", $iniCheck)
+	Global $g_sServerDescription = IniRead($g_c_sIniFile, "Server Settings", "ServerDescription", $iniCheck)
 	Global $g_sRCONIP = IniRead($g_c_sIniFile, "RCON Settings", "RCONIP", $iniCheck)
 	Global $g_sRCONPort = IniRead($g_c_sIniFile, "RCON Settings", "RCONPort", $iniCheck)
 	Global $g_sRCONPass = IniRead($g_c_sIniFile, "RCON Settings", "RCONPass", $iniCheck)
@@ -174,7 +175,7 @@ Func ReadUini()
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sServerIdentity Then
-		$g_sServerIdentity = "My_Rust_Server_1"
+		$g_sServerIdentity = "my_server_identity"
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sServerIP Then
@@ -186,15 +187,15 @@ Func ReadUini()
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sServerHostName Then
-		$g_sServerHostName = "My Rust Server Title"
+		$g_sServerHostName = "My Untitled Rust Server"
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sMaxPlayers Then
-		$g_sMaxPlayers = "50"
+		$g_sMaxPlayers = "500"
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sWorldSize Then
-		$g_sWorldSize = "3000"
+		$g_sWorldSize = "3500"
 		$g_iIniFail += 1
 	EndIf
 	If $iniCheck = $g_sSeed Then
@@ -217,6 +218,11 @@ Func ReadUini()
 		$g_sServerURL = "https://playrust.com/"
 		$g_iIniFail += 1
 	EndIf
+	If $iniCheck = $g_sServerDescription Then
+		$g_sServerDescription = "Dateranoth's Rust Server Utility keeps this server running."
+		$g_iIniFail += 1
+	EndIf
+
 	If $iniCheck = $g_sRCONIP Then
 		$g_sRCONIP = "127.0.0.1"
 		$g_iIniFail += 1
@@ -427,6 +433,7 @@ Func UpdateIni()
 	IniWrite($g_c_sIniFile, "Server Settings", "TickRate", $g_sTickRate)
 	IniWrite($g_c_sIniFile, "Server Settings", "ServerHeaderImage", $g_sServerHeaderImage)
 	IniWrite($g_c_sIniFile, "Server Settings", "ServerURL", $g_sServerURL)
+	IniWrite($g_c_sIniFile, "Server Settings", "ServerDescription", $g_sServerDescription)
 	IniWrite($g_c_sIniFile, "RCON Settings", "RCONIP", $g_sRCONIP)
 	IniWrite($g_c_sIniFile, "RCON Settings", "RCONPort", $g_sRCONPort)
 	IniWrite($g_c_sIniFile, "RCON Settings", "RCONPass", $g_sRCONPass)
@@ -521,7 +528,7 @@ Func CloseServer($bImmediate = False, $iDelay = 60)
 EndFunc   ;==>CloseServer
 
 Func SendInGameMsg($sString)
-	ControlSend($g_hRusthWnd, "", "", $sString & "{enter}")
+	ControlSend($g_hRusthWnd, "", "", "say " & $sString & "{enter}")
 EndFunc   ;==>SendInGameMsg
 
 Func RotateFile($sFile, $sBackupQty, $bDelOrig = True) ;Pass File to Rotate and Quantity of Files to Keep for backup. Optionally Keep Original.
@@ -844,16 +851,16 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script V1.0.0-rc.1 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0-rc.3 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
 	Local $sFileExists = FileExists($g_sSteamCmdDir & "\steamcmd.exe")
 	If $sFileExists = 0 Then
-		InetGet("https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip", @ScriptDir & "\steamcmd.zip", 0)
 		DirCreate($g_sSteamCmdDir) ; to extract to
-		_ExtractZip(@ScriptDir & "\steamcmd.zip", "", "steamcmd.exe", $g_sSteamCmdDir)
-		FileDelete(@ScriptDir & "\steamcmd.zip")
+		InetGet("https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip", $g_sSteamCmdDir & "\steamcmd.zip", 0)
+		_ExtractZip($g_sSteamCmdDir & "\steamcmd.zip", "", "steamcmd.exe", $g_sSteamCmdDir)
+		FileDelete($g_sSteamCmdDir & "\steamcmd.zip")
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " Running SteamCMD with validate. [steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +force_install_dir " & $g_sServerDir & " +app_update 258550 validate +quit]")
 		RunWait("" & $g_sSteamCmdDir & "\steamcmd.exe +quit")
 		If Not FileExists($g_sSteamCmdDir & "\steamcmd.exe") Then
@@ -956,7 +963,7 @@ While True ;**** Loop Until Closed ****
 		EndIf
 		$g_sRustPID = Run("" & $g_sServerDir & "\" & $g_c_sServerEXE & " -batchmode +server.identity " & $g_sServerIdentity & " +server.ip " & $g_sServerIP & " +server.port " & $g_sServerPort & " +server.hostname """ & $g_sServerHostName & _
 				""" +server.seed " & $g_sSeed & " +server.maxplayers " & $g_sMaxPlayers & " +server.worldsize " & $g_sWorldSize & " +server.saveinterval " & $g_sSaveInterval & " +server.tickrate " & $g_sTickRate & " +server.headerimage """ & $g_sServerHeaderImage & """ +server.url """ & $g_sServerURL & _
-				""" +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONPass & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" & @YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log""", $g_sServerDir)
+				""" +server.description """ & $g_sServerDescription & """ +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONPass & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" & @YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log""", $g_sServerDir)
 
 		If $g_sObfuscatePass = "yes" Then
 			$g_sRCONp = ObfPass($g_sRCONPass)
@@ -965,7 +972,7 @@ While True ;**** Loop Until Closed ****
 		EndIf
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Started [" & $g_c_sServerEXE & " -batchmode +server.identity " & $g_sServerIdentity & " +server.ip " & $g_sServerIP & " +server.port " & $g_sServerPort & " +server.hostname """ & $g_sServerHostName & _
 				""" +server.seed " & $g_sSeed & " +server.maxplayers " & $g_sMaxPlayers & " +server.worldsize " & $g_sWorldSize & " +server.saveinterval " & $g_sSaveInterval & " +server.tickrate " & $g_sTickRate & " +server.headerimage """ & $g_sServerHeaderImage & """ +server.url """ & $g_sServerURL & _
-				""" +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONp & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" & @YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log]""")
+				""" +server.description """ & $g_sServerDescription & """ +rcon.ip " & $g_sRCONIP & " +rcon.port " & $g_sRCONPort & " +rcon.password """ & $g_sRCONp & """ -logfile """ & $g_sServerDir & "\RustLogs\" & $g_sServerIdentity & "_" & @YEAR & "_" & @MON & "_" & @MDAY & "_" & @HOUR & @MIN & ".log]""")
 
 		If @error Or Not $g_sRustPID Then
 			If Not IsDeclared("iMsgBoxAnswer") Then Local $iMsgBoxAnswer

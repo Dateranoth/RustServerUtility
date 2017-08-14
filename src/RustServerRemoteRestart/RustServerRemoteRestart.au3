@@ -1,10 +1,10 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerRemoteRestart(x86).exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerRemoteRestart(x64).exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerRemoteRestart_x86_v1.0.0.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerRemoteRestart_x64_v1.0.0.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - August 8, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
 #AutoIt3Wrapper_Res_Description=Utility to Remotely Restart Rust Server
 #AutoIt3Wrapper_Res_Fileversion=1.0.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
