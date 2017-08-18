@@ -1,7 +1,7 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.3.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.3.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.4.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.4.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
@@ -283,6 +283,9 @@ Func ReadUini()
 	If $iniCheck = $g_sUseOxide Then
 		$g_sUseOxide = "no"
 		$g_iIniFail += 1
+	ElseIf $g_sUseOxide = "yes" And $g_sUseSteamCMD <> "yes" Then
+		$g_sUseOxide = "no"
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " SteamCMD is Disabled. Disabling Oxide and Updates. Does not make sense to update Oxide and Not Server!")
 	EndIf
 	If $iniCheck = $g_sRestartDaily Then
 		$g_sRestartDaily = "no"
@@ -772,7 +775,98 @@ Func UpdateCheck()
 EndFunc   ;==>UpdateCheck
 #EndRegion ;**** Functions to Check for Update ****
 
-#Region ;**** Function to Download Oxide ****
+
+#Region ;**** Checking and Updating Oxide ****
+Func GetLatestOxideVersion($sGameDir)
+	Local $aReturn[2] = [False, ""]
+	Local $sTempDir = $sGameDir & "\tmp\"
+	If Not FileExists($sTempDir) Then
+		DirCreate($sGameDir & "\tmp")
+	EndIf
+	InetGet("https://github.com/OxideMod/Oxide/releases", $sTempDir & "oxide_info.tmp", 1)
+	Local Const $sFilePath = $sTempDir & "oxide_info.tmp"
+	Local $hFileOpen = FileOpen($sFilePath, 0)
+	If $hFileOpen = -1 Then
+		$aReturn[0] = False
+	Else
+		Local $sFileRead = FileRead($hFileOpen)
+		Local $aAppInfo = StringSplit($sFileRead, '<a href="/OxideMod/Oxide/releases/latest">Latest release</a>', 1)
+		If UBound($aAppInfo) >= 3 Then
+			$aAppInfo = StringSplit($aAppInfo[2], '<span class="css-truncate-target">', 1)
+		EndIf
+		If UBound($aAppInfo) >= 2 Then
+			$aAppInfo = StringSplit($aAppInfo[2], '</span>', 1)
+		EndIf
+		If UBound($aAppInfo) >= 2 Then
+			$aReturn[0] = True
+			$aReturn[1] = $aAppInfo[1]
+		EndIf
+		FileClose($hFileOpen)
+		If FileExists($sFilePath) Then
+			FileDelete($sFilePath)
+			DirRemove($sTempDir, 1)
+		EndIf
+	EndIf
+	Return $aReturn
+EndFunc   ;==>GetLatestOxideVersion
+
+
+Func GetInstalledOxideVersion($sGameDir)
+	Local $aReturn[2] = [False, ""]
+	Local Const $sFileDir = $sGameDir & "\oxide\logs\"
+	Local Const $sLogName = "oxide_" & @YEAR & "-" & @MON & "-" & @MDAY & ".txt"
+	If Not FileExists($sFileDir) Then
+		DirCreate($sFileDir)
+	EndIf
+	Local Const $sFilePath = $sFileDir & $sLogName
+	If Not FileExists($sFilePath) Then
+		FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loading Oxide Core v0.0.0..." & @CRLF)
+	EndIf
+	Local $hFileOpen = FileOpen($sFilePath, 0)
+	If $hFileOpen = -1 Then
+		$aReturn[0] = False
+	Else
+		Local $sFileRead = FileRead($hFileOpen)
+		Local $aVersionArray = StringRegExp($sFileRead, "(Loading Oxide Core v)([0-9]\.[0-9]\.(\d+))", 4)
+		Local $iArraySize = UBound($aVersionArray)
+		If $iArraySize = 0 Then
+			$aReturn[0] = False
+		ElseIf $iArraySize >= 1 Then
+			$iArraySize -= 1
+			$aReturn[0] = True
+			$aReturn[1] = ($aVersionArray[$iArraySize])[2]
+		EndIf
+		If FileExists($sFilePath) Then
+			FileClose($hFileOpen)
+		EndIf
+	EndIf
+	Return $aReturn
+EndFunc   ;==>GetInstalledOxideVersion
+
+Func UpdateOxideCheck()
+	FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide Update Check Starting.")
+	Local $bUpdateRequired = False
+	Local $aLatestVersion = GetLatestOxideVersion($g_sServerDir)
+	Local $aInstalledVersion = GetInstalledOxideVersion($g_sServerDir)
+	If ($aLatestVersion[0] And $aInstalledVersion[0]) Then
+		If StringCompare($aLatestVersion[1], $aInstalledVersion[1]) = 0 Then
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Up to Date. Version: " & $aInstalledVersion[1])
+		Else
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Out of Date! Installed Version: " & $aInstalledVersion[1] & " Latest Version: " & $aLatestVersion[1])
+
+			$bUpdateRequired = True
+		EndIf
+	ElseIf Not $aLatestVersion[0] And Not $aInstalledVersion[0] Then
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Something went wrong retrieving Oxide Latest Version")
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Something went wrong retrieving Oxide Installed Version ")
+	ElseIf Not $aInstalledVersion[0] Then
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Something went wrong retrieving Oxide Installed Version")
+	ElseIf Not $aLatestVersion[0] Then
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Something went wrong retrieving Oxide Latest Version")
+	EndIf
+	Return $bUpdateRequired
+EndFunc   ;==>UpdateOxideCheck
+
 Func DownloadOxide()
 	Local Const $g_c_sTempDir = $g_sServerDir & "\tmp\"
 	If FileExists($g_c_sTempDir) Then
@@ -784,7 +878,7 @@ Func DownloadOxide()
 	If FileExists($sFilePath) Then
 		Local $hExtractFile = _ExtractZip($g_c_sTempDir & "Oxide-Rust.zip", "", "RustDedicated_Data", $g_c_sTempDir)
 		If $hExtractFile Then
-			FileWriteLine($g_c_sLogFile, _NowCalc() & " Latest Oxide Verion Downloaded.")
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " Latest Oxide Version Downloaded.")
 			If FileExists($g_c_sTempDir & "RustDedicated_Data") Then
 				DirCopy($g_c_sTempDir & "RustDedicated_Data", $g_sServerDir & "\RustDedicated_Data", 1)
 				FileWriteLine($g_c_sLogFile, _NowCalc() & " Oxide Updated")
@@ -799,7 +893,7 @@ Func DownloadOxide()
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " Something Went Wrong Downloading Oxide.")
 	EndIf
 EndFunc   ;==>DownloadOxide
-#EndRegion ;**** Function to Download Oxide ****
+#EndRegion ;**** Checking and Updating Oxide ****
 
 #Region ;**** Functions for Multiple Passwords and Hiding Password ****
 Func PassCheck($sPass, $sPassString)
@@ -851,7 +945,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0-rc.3 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0-rc.4 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
@@ -955,7 +1049,9 @@ While True ;**** Loop Until Closed ****
 				RunWait("" & $g_sSteamCmdDir & "\steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +force_install_dir " & $g_sServerDir & " +app_update 258550 +quit")
 			EndIf
 			If $g_sUseOxide = "yes" Then
-				DownloadOxide()
+				If UpdateOxideCheck() Then
+					DownloadOxide()
+				EndIf
 			EndIf
 			If $g_sMonthlyWipes = "yes" Then
 				WipeCheck()
@@ -1038,7 +1134,12 @@ While True ;**** Loop Until Closed ****
 
 	#Region ;**** Check for Update every X Minutes ****
 	If ($g_sCheckForUpdate = "yes") And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= $g_sUpdateInterval) And ($g_iBeginDelayedShutdown = 0) Then
-		Local $bRestart = UpdateCheck()
+		Local $bRestart = False
+		If $g_sUseOxide = "yes" Then
+			$bRestart = UpdateOxideCheck()
+		Else
+			$bRestart = UpdateCheck()
+		EndIf
 		If $bRestart And (($g_sUseDiscordBot = "yes") Or ($g_sUseTwitchBot = "yes") Or ($g_sNotifyInGame = "yes")) Then
 			$g_iBeginDelayedShutdown = 1
 		ElseIf $bRestart Then
