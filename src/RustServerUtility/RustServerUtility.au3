@@ -1,7 +1,7 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.4.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.4.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.5.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.5.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
@@ -93,6 +93,7 @@ Global Const $g_c_sIniFile = @ScriptDir & "\RustServerUtility.ini"
 Global $g_iIniFail = 0
 Global $g_iBeginDelayedShutdown = 0
 Global $g_sRCONp = ""
+Global $g_sOxideV = "0.0.0"
 
 If FileExists($g_c_sPIDFile) Then
 	Global $g_sRustPID = FileRead($g_c_sPIDFile)
@@ -814,13 +815,38 @@ EndFunc   ;==>GetLatestOxideVersion
 Func GetInstalledOxideVersion($sGameDir)
 	Local $aReturn[2] = [False, ""]
 	Local Const $sFileDir = $sGameDir & "\oxide\logs\"
-	Local Const $sLogName = "oxide_" & @YEAR & "-" & @MON & "-" & @MDAY & ".txt"
+	Local $sLogName = ""
 	If Not FileExists($sFileDir) Then
 		DirCreate($sFileDir)
+		$sLogName = "oxide_" & @YEAR & "-" & @MON & "-" & @MDAY & ".txt"
+	Else
+		Local $hSearch = FileFindFirstFile($sFileDir & "oxide_" & @YEAR & "-" & @MON & "-*.txt")
+		If $hSearch = -1 Then
+			If @MON > 1 Then
+				$hSearch = FileFindFirstFile($sFileDir & "oxide_" & @YEAR & "-" & (StringFormat("%02d", (@MON - 1))) & "-*.txt")
+			Else
+				$hSearch = FileFindFirstFile($sFileDir & "oxide_" & (@YEAR - 1) & "-12-*.txt")
+			EndIf
+			If $hSearch = -1 Then
+				$hSearch = FileFindFirstFile($sFileDir & "oxide_*.txt")
+			EndIf
+		EndIf
+		If $hSearch = -1 Then
+			$sLogName = "oxide_" & @YEAR & "-" & @MON & "-" & @MDAY & ".txt"
+		Else
+			Local $sFileFound = ""
+			While True
+				$sFileFound = FileFindNextFile($hSearch)
+				If @error Then ExitLoop
+				$sLogName = $sFileFound
+			WEnd
+			FileClose($hSearch)
+		EndIf
 	EndIf
+
 	Local Const $sFilePath = $sFileDir & $sLogName
 	If Not FileExists($sFilePath) Then
-		FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loading Oxide Core v0.0.0..." & @CRLF)
+		FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loading Oxide Core v" & $g_sOxideV & "..." & @CRLF)
 	EndIf
 	Local $hFileOpen = FileOpen($sFilePath, 0)
 	If $hFileOpen = -1 Then
@@ -830,7 +856,9 @@ Func GetInstalledOxideVersion($sGameDir)
 		Local $aVersionArray = StringRegExp($sFileRead, "(Loading Oxide Core v)([0-9]\.[0-9]\.(\d+))", 4)
 		Local $iArraySize = UBound($aVersionArray)
 		If $iArraySize = 0 Then
-			$aReturn[0] = False
+			FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loading Oxide Core v" & $g_sOxideV & "..." & @CRLF)
+			$aReturn[0] = True
+			$aReturn[1] = $g_sOxideV
 		ElseIf $iArraySize >= 1 Then
 			$iArraySize -= 1
 			$aReturn[0] = True
@@ -851,9 +879,10 @@ Func UpdateOxideCheck()
 	If ($aLatestVersion[0] And $aInstalledVersion[0]) Then
 		If StringCompare($aLatestVersion[1], $aInstalledVersion[1]) = 0 Then
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Up to Date. Version: " & $aInstalledVersion[1])
+			$g_sOxideV = $aInstalledVersion[1] ;remember version to write on log rotation
 		Else
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Out of Date! Installed Version: " & $aInstalledVersion[1] & " Latest Version: " & $aLatestVersion[1])
-
+			$g_sOxideV = $aLatestVersion[1] ;remember version to write on log rotation
 			$bUpdateRequired = True
 		EndIf
 	ElseIf Not $aLatestVersion[0] And Not $aInstalledVersion[0] Then
@@ -945,7 +974,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0-rc.4 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0-rc.5 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
