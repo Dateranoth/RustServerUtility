@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerRemoteRestart_x64_v1.0.0.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - September 20, 2017
 #AutoIt3Wrapper_Res_Description=Utility to Remotely Restart Rust Server
 #AutoIt3Wrapper_Res_Fileversion=1.0.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
@@ -24,15 +24,15 @@
    ;--------------------------
    Local $ConnectedSocket, $szData
 If FileExists("RustServerRemoteRestart.ini") Then
-   Local $cIPorName = IniRead("RustServerRemoteRestart.ini", "Use IP (x.x.x.x) or Name (myserver.com) (ip/name)", "cIPorName", "ip")
-   Local $cSERVERADDRESS = IniRead("RustServerRemoteRestart.ini", "GameServerIP (can be name or IP based on above setting)", "cSERVERADDRESS", "127.0.0.1")
-   Local $cPORT = IniRead("RustServerRemoteRestart.ini", "RestartServerPort", "cPORT", "57530")
+   Local $cIPorName = IniRead("RustServerRemoteRestart.ini", "Use IP (x.x.x.x) or Name (myserver.com) (ip/name)", "IPorName", "ip")
+   Local $cSERVERADDRESS = IniRead("RustServerRemoteRestart.ini", "GameServerIP (can be name or IP based on above setting)", "SERVERADDRESS", "127.0.0.1")
+   Local $cPORT = IniRead("RustServerRemoteRestart.ini", "RestartServerPort", "PORT", "57530")
    Local $RPassword = IniRead("RustServerRemoteRestart.ini", "DefaultRestartPassword", "RPassword", "")
 
 Else
-   IniWrite("RustServerRemoteRestart.ini", "Use IP (x.x.x.x) or Name (myserver.com) (ip/name)", "cIPorName", "ip")
-   IniWrite("RustServerRemoteRestart.ini", "GameServerIP (can be name or IP based on above setting)", "cSERVERADDRESS", "127.0.0.1")
-   IniWrite("RustServerRemoteRestart.ini", "RestartServerPort", "cPORT", "57530")
+   IniWrite("RustServerRemoteRestart.ini", "Use IP (x.x.x.x) or Name (myserver.com) (ip/name)", "IPorName", "ip")
+   IniWrite("RustServerRemoteRestart.ini", "GameServerIP (can be name or IP based on above setting)", "SERVERADDRESS", "127.0.0.1")
+   IniWrite("RustServerRemoteRestart.ini", "RestartServerPort", "PORT", "57530")
    IniWrite("RustServerRemoteRestart.ini", "DefaultRestartPassword", "RPassword", "")
    MsgBox(4096, "Default INI File Made", "Please Modify Default Values and Restart Script")
    TCPShutdown() ; Close the TCP service.

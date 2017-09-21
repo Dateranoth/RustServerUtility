@@ -1,10 +1,10 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0-rc.5.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0-rc.5.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - August 13, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - September 20, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
 #AutoIt3Wrapper_Res_Fileversion=1.0.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
@@ -974,7 +974,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0-rc.5 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
