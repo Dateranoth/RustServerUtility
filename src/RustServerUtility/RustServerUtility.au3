@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.0.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.0.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.1.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.1.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - September 20, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - September 28, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.0
+#AutoIt3Wrapper_Res_Fileversion=1.0.1.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -893,16 +893,17 @@ Func UpdateOxideCheck()
 	ElseIf Not $aLatestVersion[0] Then
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Something went wrong retrieving Oxide Latest Version")
 	EndIf
-	Return $bUpdateRequired
+	Local $aReturn[2] = [$bUpdateRequired, $aLatestVersion[1]]
+	Return $aReturn
 EndFunc   ;==>UpdateOxideCheck
 
-Func DownloadOxide()
+Func DownloadOxide($sVersion = "latest")
 	Local Const $g_c_sTempDir = $g_sServerDir & "\tmp\"
 	If FileExists($g_c_sTempDir) Then
 		DirRemove($g_c_sTempDir, 1)
 	EndIf
 	DirCreate($g_sServerDir & "\tmp")
-	InetGet("https://dl.bintray.com/oxidemod/builds/Oxide-Rust.zip", $g_c_sTempDir & "Oxide-Rust.zip", 0)
+	InetGet("https://github.com/OxideMod/Oxide/releases/download/" & $sVersion & "/Oxide-Rust.zip", $g_c_sTempDir & "Oxide-Rust.zip", 0)
 	Local Const $sFilePath = $g_c_sTempDir & "Oxide-Rust.zip"
 	If FileExists($sFilePath) Then
 		Local $hExtractFile = _ExtractZip($g_c_sTempDir & "Oxide-Rust.zip", "", "RustDedicated_Data", $g_c_sTempDir)
@@ -974,7 +975,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.0 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.1 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
@@ -1078,8 +1079,9 @@ While True ;**** Loop Until Closed ****
 				RunWait("" & $g_sSteamCmdDir & "\steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +force_install_dir " & $g_sServerDir & " +app_update 258550 +quit")
 			EndIf
 			If $g_sUseOxide = "yes" Then
-				If UpdateOxideCheck() Then
-					DownloadOxide()
+				Local $aOxideUpdateCheck = UpdateOxideCheck()
+				If $aOxideUpdateCheck[0] Then
+					DownloadOxide($aOxideUpdateCheck[1])
 				EndIf
 			EndIf
 			If $g_sMonthlyWipes = "yes" Then
@@ -1165,7 +1167,8 @@ While True ;**** Loop Until Closed ****
 	If ($g_sCheckForUpdate = "yes") And ((_DateDiff('n', $g_sTimeCheck0, _NowCalc())) >= $g_sUpdateInterval) And ($g_iBeginDelayedShutdown = 0) Then
 		Local $bRestart = False
 		If $g_sUseOxide = "yes" Then
-			$bRestart = UpdateOxideCheck()
+			Local $aRestart = UpdateOxideCheck()
+			$bRestart = $aRestart[0]
 		Else
 			$bRestart = UpdateCheck()
 		EndIf
