@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.0.1.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.0.1.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.1.0.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.1.0.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=By Dateranoth - September 28, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.0.1.0
+#AutoIt3Wrapper_Res_Fileversion=1.1.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -784,23 +784,20 @@ Func GetLatestOxideVersion($sGameDir)
 	If Not FileExists($sTempDir) Then
 		DirCreate($sGameDir & "\tmp")
 	EndIf
-	InetGet("https://github.com/OxideMod/Oxide/releases", $sTempDir & "oxide_info.tmp", 1)
+	InetGet("https://api.github.com/repos/oxidemod/oxide/releases/latest", $sTempDir & "oxide_info.tmp", 1)
 	Local Const $sFilePath = $sTempDir & "oxide_info.tmp"
 	Local $hFileOpen = FileOpen($sFilePath, 0)
 	If $hFileOpen = -1 Then
 		$aReturn[0] = False
 	Else
 		Local $sFileRead = FileRead($hFileOpen)
-		Local $aAppInfo = StringSplit($sFileRead, '<a href="/OxideMod/Oxide/releases/latest">Latest release</a>', 1)
+		Local $aAppInfo = StringSplit($sFileRead, '","target_commitish"', 1)
 		If UBound($aAppInfo) >= 3 Then
-			$aAppInfo = StringSplit($aAppInfo[2], '<span class="css-truncate-target">', 1)
+			$aAppInfo = StringSplit($aAppInfo[1], '"tag_name":"', 1)
 		EndIf
-		If UBound($aAppInfo) >= 2 Then
-			$aAppInfo = StringSplit($aAppInfo[2], '</span>', 1)
-		EndIf
-		If UBound($aAppInfo) >= 2 Then
+		If UBound($aAppInfo) >= 3 Then
 			$aReturn[0] = True
-			$aReturn[1] = $aAppInfo[1]
+			$aReturn[1] = $aAppInfo[2]
 		EndIf
 		FileClose($hFileOpen)
 		If FileExists($sFilePath) Then
@@ -975,7 +972,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.0.1 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.1.0 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
