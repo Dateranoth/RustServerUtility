@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.1.1.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.1.1.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.1.2.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.1.2.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - October 12, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - November 16, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.1.1.0
+#AutoIt3Wrapper_Res_Fileversion=1.1.2.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -784,7 +784,7 @@ Func GetLatestOxideVersion($sGameDir)
 	If Not FileExists($sTempDir) Then
 		DirCreate($sGameDir & "\tmp")
 	EndIf
-	InetGet("https://api.github.com/repos/oxidemod/oxide/releases/latest", $sTempDir & "oxide_info.tmp", 1)
+	InetGet("https://api.github.com/repos/oxidemod/oxide.rust/releases/latest", $sTempDir & "oxide_info.tmp", 1)
 	Local Const $sFilePath = $sTempDir & "oxide_info.tmp"
 	Local $hFileOpen = FileOpen($sFilePath, 0)
 	If $hFileOpen = -1 Then
@@ -900,7 +900,7 @@ Func DownloadOxide($sVersion = "latest")
 		DirRemove($g_c_sTempDir, 1)
 	EndIf
 	DirCreate($g_sServerDir & "\tmp")
-	InetGet("https://github.com/OxideMod/Oxide/releases/download/" & $sVersion & "/Oxide-Rust.zip", $g_c_sTempDir & "Oxide-Rust.zip", 0)
+	InetGet("https://github.com/OxideMod/Oxide.Rust/releases/download/" & $sVersion & "/Oxide-Rust.zip", $g_c_sTempDir & "Oxide-Rust.zip", 0)
 	Local Const $sFilePath = $g_c_sTempDir & "Oxide-Rust.zip"
 	If FileExists($sFilePath) Then
 		Local $hExtractFile = _ExtractZip($g_c_sTempDir & "Oxide-Rust.zip", "", "RustDedicated_Data", $g_c_sTempDir)
@@ -972,7 +972,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.1.1 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.1.2 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
