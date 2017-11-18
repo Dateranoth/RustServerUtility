@@ -800,7 +800,7 @@ Func GetLatestOxideVersion($sGameDir)
 		If UBound($aAppInfo) >= 3 And UBound($aAppInfo2) >= 3 Then
 			$aReturn[0] = True
 			$aReturn[1] = $aAppInfo[2]
-			$aReturn[1] = $aAppInfo2[2]
+			$aReturn[2] = $aAppInfo2[2]
 		EndIf
 		FileClose($hFileOpen)
 		If FileExists($sFilePath) Then
