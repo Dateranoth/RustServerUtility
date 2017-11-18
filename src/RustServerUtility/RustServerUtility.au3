@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.1.2.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.1.2.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.0.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.0.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - November 16, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - November 17, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.0
+#AutoIt3Wrapper_Res_Fileversion=1.2.0.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -779,7 +779,7 @@ EndFunc   ;==>UpdateCheck
 
 #Region ;**** Checking and Updating Oxide ****
 Func GetLatestOxideVersion($sGameDir)
-	Local $aReturn[2] = [False, ""]
+	Local $aReturn[3] = [False, "", ""]
 	Local $sTempDir = $sGameDir & "\tmp\"
 	If Not FileExists($sTempDir) Then
 		DirCreate($sGameDir & "\tmp")
@@ -792,12 +792,15 @@ Func GetLatestOxideVersion($sGameDir)
 	Else
 		Local $sFileRead = FileRead($hFileOpen)
 		Local $aAppInfo = StringSplit($sFileRead, '","target_commitish"', 1)
-		If UBound($aAppInfo) >= 3 Then
+		Local $aAppInfo2 = StringSplit($sFileRead, '"}],"tarball_url":"', 1)
+		If UBound($aAppInfo) >= 3 And UBound($aAppInfo2) >= 3 Then
 			$aAppInfo = StringSplit($aAppInfo[1], '"tag_name":"', 1)
+			$aAppInfo2 = StringSplit($aAppInfo2[1], '"browser_download_url":"', 1)
 		EndIf
-		If UBound($aAppInfo) >= 3 Then
+		If UBound($aAppInfo) >= 3 And UBound($aAppInfo2) >= 3 Then
 			$aReturn[0] = True
 			$aReturn[1] = $aAppInfo[2]
+			$aReturn[1] = $aAppInfo2[2]
 		EndIf
 		FileClose($hFileOpen)
 		If FileExists($sFilePath) Then
@@ -807,7 +810,6 @@ Func GetLatestOxideVersion($sGameDir)
 	EndIf
 	Return $aReturn
 EndFunc   ;==>GetLatestOxideVersion
-
 
 Func GetInstalledOxideVersion($sGameDir)
 	Local $aReturn[2] = [False, ""]
@@ -890,25 +892,25 @@ Func UpdateOxideCheck()
 	ElseIf Not $aLatestVersion[0] Then
 		FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Something went wrong retrieving Oxide Latest Version")
 	EndIf
-	Local $aReturn[2] = [$bUpdateRequired, $aLatestVersion[1]]
+	Local $aReturn[3] = [$bUpdateRequired, $aLatestVersion[1], $aLatestVersion[2]]
 	Return $aReturn
 EndFunc   ;==>UpdateOxideCheck
 
-Func DownloadOxide($sVersion = "latest")
+Func DownloadOxide($sVersion, $sURL)
 	Local Const $g_c_sTempDir = $g_sServerDir & "\tmp\"
 	If FileExists($g_c_sTempDir) Then
 		DirRemove($g_c_sTempDir, 1)
 	EndIf
 	DirCreate($g_sServerDir & "\tmp")
-	InetGet("https://github.com/OxideMod/Oxide.Rust/releases/download/" & $sVersion & "/Oxide-Rust.zip", $g_c_sTempDir & "Oxide-Rust.zip", 0)
+	InetGet($sURL, $g_c_sTempDir & "Oxide-Rust.zip", 0)
 	Local Const $sFilePath = $g_c_sTempDir & "Oxide-Rust.zip"
 	If FileExists($sFilePath) Then
 		Local $hExtractFile = _ExtractZip($g_c_sTempDir & "Oxide-Rust.zip", "", "RustDedicated_Data", $g_c_sTempDir)
 		If $hExtractFile Then
-			FileWriteLine($g_c_sLogFile, _NowCalc() & " Latest Oxide Version " & $sVersion & " Downloaded.")
+			FileWriteLine($g_c_sLogFile, _NowCalc() & " Downloaded Oxide from " & $sURL)
 			If FileExists($g_c_sTempDir & "RustDedicated_Data") Then
 				DirCopy($g_c_sTempDir & "RustDedicated_Data", $g_sServerDir & "\RustDedicated_Data", 1)
-				FileWriteLine($g_c_sLogFile, _NowCalc() & " Oxide Updated")
+				FileWriteLine($g_c_sLogFile, _NowCalc() & " Oxide Updated to Version " & $sVersion)
 			Else
 				FileWriteLine($g_c_sLogFile, _NowCalc() & " Something went wrong Moving Oxide Folder.")
 			EndIf
@@ -917,7 +919,7 @@ Func DownloadOxide($sVersion = "latest")
 		EndIf
 		DirRemove($g_c_sTempDir, 1)
 	Else
-		FileWriteLine($g_c_sLogFile, _NowCalc() & " Something Went Wrong Downloading Oxide.")
+		FileWriteLine($g_c_sLogFile, _NowCalc() & " Something Went Wrong Downloading Oxide from " & $sURL)
 	EndIf
 EndFunc   ;==>DownloadOxide
 #EndRegion ;**** Checking and Updating Oxide ****
@@ -972,7 +974,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.1.2 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.2.0 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
@@ -1078,7 +1080,7 @@ While True ;**** Loop Until Closed ****
 			If $g_sUseOxide = "yes" Then
 				Local $aOxideUpdateCheck = UpdateOxideCheck()
 				If $aOxideUpdateCheck[0] Then
-					DownloadOxide($aOxideUpdateCheck[1])
+					DownloadOxide($aOxideUpdateCheck[1], $aOxideUpdateCheck[2])
 				EndIf
 			EndIf
 			If $g_sMonthlyWipes = "yes" Then
