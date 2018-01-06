@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.0.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.0.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.1.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.1.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=By Dateranoth - November 17, 2017
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.2.0.0
+#AutoIt3Wrapper_Res_Fileversion=1.2.1.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -845,7 +845,7 @@ Func GetInstalledOxideVersion($sGameDir)
 
 	Local Const $sFilePath = $sFileDir & $sLogName
 	If Not FileExists($sFilePath) Then
-		FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loaded extension Rust v" & $g_sOxideV & "..." & @CRLF)
+		FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loaded extension Rust v" & $g_sOxideV & "... [Added for use by RustServerUtility]" & @CRLF)
 	EndIf
 	Local $hFileOpen = FileOpen($sFilePath, 0)
 	If $hFileOpen = -1 Then
@@ -855,13 +855,14 @@ Func GetInstalledOxideVersion($sGameDir)
 		Local $aVersionArray = StringRegExp($sFileRead, "(Loaded extension Rust v)([0-9]\.[0-9]\.(\d+))", 4)
 		Local $iArraySize = UBound($aVersionArray)
 		If $iArraySize = 0 Then
-			FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loaded extension Rust v" & $g_sOxideV & "..." & @CRLF)
+			FileWrite($sFilePath, @HOUR & ":" & @MIN & " [Info] Loaded extension Rust v" & $g_sOxideV & "... [Added for use by RustServerUtility]" & @CRLF)
 			$aReturn[0] = True
 			$aReturn[1] = $g_sOxideV
 		ElseIf $iArraySize >= 1 Then
 			$iArraySize -= 1
 			$aReturn[0] = True
 			$aReturn[1] = ($aVersionArray[$iArraySize])[2]
+			$g_sOxideV = $aReturn[1] ;remember version to write on log rotation
 		EndIf
 		If FileExists($sFilePath) Then
 			FileClose($hFileOpen)
@@ -878,10 +879,8 @@ Func UpdateOxideCheck()
 	If ($aLatestVersion[0] And $aInstalledVersion[0]) Then
 		If StringCompare($aLatestVersion[1], $aInstalledVersion[1]) = 0 Then
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Up to Date. Version: " & $aInstalledVersion[1])
-			$g_sOxideV = $aInstalledVersion[1] ;remember version to write on log rotation
 		Else
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Out of Date! Installed Version: " & $aInstalledVersion[1] & " Latest Version: " & $aLatestVersion[1])
-			$g_sOxideV = $aLatestVersion[1] ;remember version to write on log rotation
 			$bUpdateRequired = True
 		EndIf
 	ElseIf Not $aLatestVersion[0] And Not $aInstalledVersion[0] Then
@@ -911,6 +910,7 @@ Func DownloadOxide($sVersion, $sURL)
 			If FileExists($g_c_sTempDir & "RustDedicated_Data") Then
 				DirCopy($g_c_sTempDir & "RustDedicated_Data", $g_sServerDir & "\RustDedicated_Data", 1)
 				FileWriteLine($g_c_sLogFile, _NowCalc() & " Oxide Updated to Version " & $sVersion)
+				$g_sOxideV = $sVersion ;remember version to write on log rotation
 			Else
 				FileWriteLine($g_c_sLogFile, _NowCalc() & " Something went wrong Moving Oxide Folder.")
 			EndIf
@@ -974,7 +974,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.2.0 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.2.1 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
