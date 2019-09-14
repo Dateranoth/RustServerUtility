@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.1.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.1.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.2.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.2.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - November 17, 2017
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - September 14, 2019
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.2.1.0
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -784,7 +784,7 @@ Func GetLatestOxideVersion($sGameDir)
 	If Not FileExists($sTempDir) Then
 		DirCreate($sGameDir & "\tmp")
 	EndIf
-	InetGet("https://api.github.com/repos/oxidemod/oxide.rust/releases/latest", $sTempDir & "oxide_info.tmp", 1)
+	InetGet("https://api.github.com/repos/theumod/uMod.Rust/releases/latest", $sTempDir & "oxide_info.tmp", 1)
 	Local Const $sFilePath = $sTempDir & "oxide_info.tmp"
 	Local $hFileOpen = FileOpen($sFilePath, 0)
 	If $hFileOpen = -1 Then
@@ -871,13 +871,15 @@ Func GetInstalledOxideVersion($sGameDir)
 	Return $aReturn
 EndFunc   ;==>GetInstalledOxideVersion
 
-Func UpdateOxideCheck()
+Func UpdateOxideCheck($bFirstRun = False)
 	FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide Update Check Starting.")
 	Local $bUpdateRequired = False
 	Local $aLatestVersion = GetLatestOxideVersion($g_sServerDir)
 	Local $aInstalledVersion = GetInstalledOxideVersion($g_sServerDir)
 	If ($aLatestVersion[0] And $aInstalledVersion[0]) Then
-		If StringCompare($aLatestVersion[1], $aInstalledVersion[1]) = 0 Then
+		If $bFirstRun Then
+			$bUpdateRequired = True
+		ElseIf StringCompare($aLatestVersion[1], $aInstalledVersion[1]) = 0 Then
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Up to Date. Version: " & $aInstalledVersion[1])
 		Else
 			FileWriteLine($g_c_sLogFile, _NowCalc() & " [" & $g_sServerHostName & " (PID: " & $g_sRustPID & ")] Oxide is Out of Date! Installed Version: " & $aInstalledVersion[1] & " Latest Version: " & $aLatestVersion[1])
@@ -1078,7 +1080,7 @@ While True ;**** Loop Until Closed ****
 				RunWait("" & $g_sSteamCmdDir & "\steamcmd.exe +@ShutdownOnFailedCommand 1 +@NoPromptForPassword 1 +login anonymous +force_install_dir " & $g_sServerDir & " +app_update 258550 +quit")
 			EndIf
 			If $g_sUseOxide = "yes" Then
-				Local $aOxideUpdateCheck = UpdateOxideCheck()
+				Local $aOxideUpdateCheck = UpdateOxideCheck(True)
 				If $aOxideUpdateCheck[0] Then
 					DownloadOxide($aOxideUpdateCheck[1], $aOxideUpdateCheck[2])
 				EndIf
