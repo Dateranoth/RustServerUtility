@@ -1,12 +1,12 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\resources\favicon.ico
-#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.2.exe
-#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.2.exe
+#AutoIt3Wrapper_Outfile=..\..\build\RustServerUtility_x86_v1.2.3.exe
+#AutoIt3Wrapper_Outfile_x64=..\..\build\RustServerUtility_x64_v1.2.3.exe
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
-#AutoIt3Wrapper_Res_Comment=By Dateranoth - September 14, 2019
+#AutoIt3Wrapper_Res_Comment=By Dateranoth - October 29, 2019
 #AutoIt3Wrapper_Res_Description=Utility for Running Rust Server
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.0
+#AutoIt3Wrapper_Res_Fileversion=1.2.3.0
 #AutoIt3Wrapper_Res_LegalCopyright=Dateranoth @ https://gamercide.com
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -791,17 +791,21 @@ Func GetLatestOxideVersion($sGameDir)
 		$aReturn[0] = False
 	Else
 		Local $sFileRead = FileRead($hFileOpen)
-		Local $aAppInfo = StringSplit($sFileRead, '","target_commitish"', 1)
-		Local $aAppInfo2 = StringSplit($sFileRead, '"}],"tarball_url":"', 1)
-		If UBound($aAppInfo) >= 3 And UBound($aAppInfo2) >= 3 Then
-			$aAppInfo = StringSplit($aAppInfo[1], '"tag_name":"', 1)
-			$aAppInfo2 = StringSplit($aAppInfo2[1], '"browser_download_url":"', 1)
+		Local $aAppInfo = StringRegExp($sFileRead, '("tag_name":")(\d+\.\d+\.\d+)', 4) ;version
+		Local $aAppInfo2 = StringRegExp($sFileRead, '(browser_download_url":")((?!.+(?i)(linux)).+?(?="))', 4) ;url
+		Local $iArraySize1 = UBound($aAppInfo)
+		Local $iArraySize2 = UBound($aAppInfo2)
+
+		If $iArraySize1 >= 1 And $iArraySize2 Then
+			$iArraySize1 -= 1
+			$iArraySize2 -= 1
+			If UBound($aAppInfo[$iArraySize1]) >= 3 And UBound($aAppInfo2[$iArraySize2]) >= 3 Then
+				$aReturn[0] = True
+				$aReturn[1] = ($aAppInfo[$iArraySize1])[2] ;version
+				$aReturn[2] = ($aAppInfo2[$iArraySize2])[2] ;url
+			EndIf
 		EndIf
-		If UBound($aAppInfo) >= 3 And UBound($aAppInfo2) >= 3 Then
-			$aReturn[0] = True
-			$aReturn[1] = $aAppInfo[2]
-			$aReturn[2] = $aAppInfo2[2]
-		EndIf
+
 		FileClose($hFileOpen)
 		If FileExists($sFilePath) Then
 			FileDelete($sFilePath)
@@ -976,7 +980,7 @@ EndFunc   ;==>_TCP_Server_ClientIP
 
 #Region ;**** Startup Checks. Initial Log, Read INI, Check for Correct Paths, Check Remote Restart is bound to port. ****
 OnAutoItExitRegister("Gamercide")
-FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.2.1 Started")
+FileWriteLine($g_c_sLogFile, _NowCalc() & " RustServerUtility Script v1.2.3 Started")
 ReadUini()
 
 If $g_sUseSteamCMD = "yes" Then
